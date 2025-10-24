@@ -82,6 +82,8 @@
         }
         
         input[type="text"],
+        input[type="number"],
+        input[type="date"],
         textarea {
             width: 100%;
             padding: 12px;
@@ -93,6 +95,8 @@
         }
         
         input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
         textarea:focus {
             outline: none;
             border-color: #667eea;
@@ -293,17 +297,17 @@
                             <div class="checkbox-item">
                                 <input type="checkbox" id="homestead" name="homestead">
                                 <label for="homestead">Homestead</label>
-                                <input type="text" class="amount-input" id="homesteadAmount" placeholder="$">
+                                <input type="number" class="amount-input" id="homesteadAmount" placeholder="$" min="0" step="0.01">
                             </div>
                             <div class="checkbox-item">
                                 <input type="checkbox" id="veterans" name="veterans">
                                 <label for="veterans">Veterans</label>
-                                <input type="text" class="amount-input" id="veteransAmount" placeholder="$">
+                                <input type="number" class="amount-input" id="veteransAmount" placeholder="$" min="0" step="0.01">
                             </div>
                             <div class="checkbox-item">
                                 <input type="checkbox" id="treeGrowth" name="treeGrowth">
                                 <label for="treeGrowth">Tree Growth</label>
-                                <input type="text" class="amount-input" id="treeGrowthAmount" placeholder="$">
+                                <input type="number" class="amount-input" id="treeGrowthAmount" placeholder="$" min="0" step="0.01">
                             </div>
                             <div class="checkbox-item">
                                 <input type="checkbox" id="na" name="na">
@@ -337,7 +341,7 @@
                     
                     <div class="form-group">
                         <label for="dateVisited">Date Visited</label>
-                        <input type="text" id="dateVisited" name="dateVisited" placeholder="MM/DD/YYYY">
+                        <input type="date" id="dateVisited" name="dateVisited">
                     </div>
                     
                     <div class="grid-2">
@@ -467,6 +471,25 @@
             await fillPDF();
         });
         
+        // Auto-check checkboxes when amounts are entered
+        function setupAutoCheckbox(amountInputId, checkboxId) {
+            const amountInput = document.getElementById(amountInputId);
+            const checkbox = document.getElementById(checkboxId);
+            
+            amountInput.addEventListener('input', function() {
+                if (this.value && parseFloat(this.value) > 0) {
+                    checkbox.checked = true;
+                } else {
+                    checkbox.checked = false;
+                }
+            });
+        }
+        
+        // Set up auto-checkbox for all tax exemptions
+        setupAutoCheckbox('homesteadAmount', 'homestead');
+        setupAutoCheckbox('veteransAmount', 'veterans');
+        setupAutoCheckbox('treeGrowthAmount', 'treeGrowth');
+        
         function resetForm() {
             document.getElementById('prcForm').reset();
             showStatus('Form cleared!', 'success');
@@ -550,7 +573,10 @@
                 setCheckbox('undefined_2', document.getElementById('attachTaxMap').checked);
                 
                 // Code Enforcement
-                setValue('DATE VISITED', document.getElementById('dateVisited').value);
+                // Format date from YYYY-MM-DD to MM/DD/YYYY
+                const dateValue = document.getElementById('dateVisited').value;
+                const formattedDate = dateValue ? new Date(dateValue + 'T00:00:00').toLocaleDateString('en-US') : '';
+                setValue('DATE VISITED', formattedDate);
                 setValue('Current Zone', document.getElementById('currentZone').value);
                 setValue('Overlay?', document.getElementById('overlay').value);
                 
