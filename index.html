@@ -2,1145 +2,642 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pocket PRC - Public Records Checklist</title>
+    <meta name="viewport"="width=device-width, initial-scale=1.0">
+    <title>Pocket PRC - Keller Williams</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 25px 80px rgba(0,0,0,0.35);
-            overflow: hidden;
-            animation: slideIn 0.5s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #d62828 0%, #a61e1e 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: pulse 4s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.3; }
-            50% { transform: scale(1.1); opacity: 0.5; }
-        }
-        
-        .header-content {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .header h1 {
-            font-size: 36px;
-            margin-bottom: 8px;
-            font-weight: 700;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-        
-        .header .subtitle {
-            font-size: 16px;
-            opacity: 0.95;
-            font-weight: 400;
-        }
-        
-        .header .version {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 5px 15px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            backdrop-filter: blur(10px);
-        }
-        
-        .action-bar {
-            display: flex;
-            gap: 10px;
-            padding: 20px 40px;
-            background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
-            border-bottom: 1px solid #e9ecef;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
-        .action-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        }
-        
-        .btn-save {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-        
-        .btn-load {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-        }
-        
-        .btn-clear {
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-            color: white;
-        }
-        
-        .form-content {
-            padding: 40px;
-            max-height: calc(100vh - 400px);
-            overflow-y: auto;
-        }
-        
-        .form-content::-webkit-scrollbar {
-            width: 10px;
-        }
-        
-        .form-content::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        
-        .form-content::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 5px;
-        }
-        
-        .section {
-            margin-bottom: 40px;
-            padding: 30px;
-            background: linear-gradient(to bottom right, #ffffff 0%, #f8f9fa 100%);
-            border-radius: 12px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            transition: all 0.3s;
-        }
-        
-        .section:hover {
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-        
-        .section-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: #d62828;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #d62828;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .section-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, #d62828 0%, #a61e1e 100%);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        label {
-            display: block;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-        
-        input[type="text"],
-        input[type="number"],
-        input[type="date"],
-        textarea {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 15px;
-            transition: all 0.3s;
-            font-family: inherit;
-            background: white;
-        }
-        
-        input[type="text"]:focus,
-        input[type="number"]:focus,
-        input[type="date"]:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-            background: #fafbff;
-        }
-        
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-        
-        .checkbox-group {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            padding: 20px;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border-radius: 10px;
-            border: 2px solid #bae6fd;
-        }
-        
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
-            background: white;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        
-        .checkbox-item:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-        
-        .checkbox-item input[type="checkbox"] {
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-            accent-color: #667eea;
-        }
-        
-        .checkbox-item label {
-            margin: 0;
-            cursor: pointer;
-            font-weight: 500;
-            color: #374151;
-        }
-        
-        .amount-input {
-            width: 130px !important;
-            margin-left: 5px;
-            padding: 8px 12px !important;
-        }
-        
-        .radio-group {
-            display: flex;
-            gap: 15px;
-            padding: 20px;
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-radius: 10px;
-            border: 2px solid #fcd34d;
-        }
-        
-        .radio-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 15px;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .radio-item:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-        
-        .radio-item input[type="radio"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            accent-color: #667eea;
-        }
-        
-        .radio-item label {
-            margin: 0;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-        }
-        
-        .file-upload-section {
-            margin-top: 30px;
-            padding: 25px;
-            background: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
-            border-radius: 12px;
-            border: 3px dashed #8b5cf6;
-        }
-        
-        .file-upload-header {
-            font-size: 18px;
-            font-weight: 700;
-            color: #5b21b6;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .file-upload-area {
-            padding: 30px;
-            background: white;
-            border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 2px dashed #a78bfa;
-        }
-        
-        .file-upload-area:hover {
-            background: #faf5ff;
-            border-color: #8b5cf6;
-            transform: scale(1.02);
-        }
-        
-        .file-upload-area.dragover {
-            background: #f3e8ff;
-            border-color: #7c3aed;
-            transform: scale(1.05);
-        }
-        
-        .upload-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
-        
-        .file-list {
-            margin-top: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .file-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 15px;
-            background: white;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
-        }
-        
-        .file-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .file-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .remove-file {
-            padding: 6px 12px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .remove-file:hover {
-            background: #dc2626;
-            transform: scale(1.05);
-        }
-        
-        .button-container {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            padding: 30px 40px;
-            background: linear-gradient(to top, #f8f9fa 0%, #ffffff 100%);
-            border-top: 1px solid #e9ecef;
-        }
-        
-        button.primary-btn {
-            padding: 18px 50px;
-            font-size: 18px;
-            font-weight: 700;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        }
-        
-        .btn-generate {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-generate:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-generate:active {
-            transform: translateY(-1px);
-        }
-        
-        .status {
-            text-align: center;
-            padding: 20px;
-            margin: 20px 40px;
-            border-radius: 10px;
-            font-weight: 600;
-            display: none;
-            animation: slideDown 0.3s ease-out;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .status.success {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-            color: #065f46;
-            border: 2px solid #34d399;
-        }
-        
-        .status.error {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-            color: #991b1b;
-            border: 2px solid #f87171;
-        }
-        
-        .info-box {
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-            border-left: 5px solid #3b82f6;
-            padding: 20px;
-            margin-bottom: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
-        
-        .info-box p {
-            margin: 0;
-            color: #1e3a8a;
-            font-size: 15px;
-            line-height: 1.6;
-        }
-        
-        .info-box strong {
-            color: #1e40af;
-        }
-        
-        @media (max-width: 768px) {
-            .grid-2 {
-                grid-template-columns: 1fr;
-            }
-            
-            .checkbox-group,
-            .radio-group {
-                flex-direction: column;
-            }
-            
-            .form-content {
-                padding: 25px;
-            }
-            
-            .action-bar {
-                padding: 15px 20px;
-            }
-            
-            .header h1 {
-                font-size: 28px;
-            }
-        }
-        
-        input[type="file"] {
-            display: none;
-        }
-    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="header-content">
-                <h1>📋 Pocket PRC</h1>
-                <p class="subtitle">Public Records Checklist - Digital Edition</p>
-                <span class="version">v2.0</span>
-            </div>
-        </div>
-        
-        <div class="action-bar">
-            <button class="action-btn btn-save" onclick="saveProgress()">
-                💾 Save Progress
-            </button>
-            <button class="action-btn btn-load" onclick="document.getElementById('loadFile').click()">
-                📂 Load Progress
-            </button>
-            <input type="file" id="loadFile" accept=".json" onchange="loadProgress(event)">
-            <button class="action-btn btn-clear" onclick="resetForm()">
-                🗑️ Clear Form
-            </button>
-        </div>
-        
-        <div class="form-content">
-            <div class="info-box">
-                <p><strong>🚀 New Features:</strong> Save your progress as a file, attach documents/photos to your PDF, and enjoy a beautiful interface!</p>
-            </div>
-            
-            <form id="prcForm">
-                <!-- Property Address Section -->
-                <div class="section">
-                    <div class="section-title">
-                        <span class="section-icon">🏠</span>
-                        Property Information
-                    </div>
-                    <div class="form-group">
-                        <label for="propertyAddress">Property Address *</label>
-                        <input type="text" id="propertyAddress" name="propertyAddress" required>
-                    </div>
-                </div>
-                
-                <!-- Section 1: Assessor's Office -->
-                <div class="section">
-                    <div class="section-title">
-                        <span class="section-icon">1</span>
-                        Assessor's Office
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Tax Exemptions</label>
-                        <div class="checkbox-group">
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="homestead" name="homestead">
-                                <label for="homestead">Homestead</label>
-                                <input type="number" class="amount-input" id="homesteadAmount" placeholder="$" min="0" step="0.01">
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="veterans" name="veterans">
-                                <label for="veterans">Veterans</label>
-                                <input type="number" class="amount-input" id="veteransAmount" placeholder="$" min="0" step="0.01">
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="treeGrowth" name="treeGrowth">
-                                <label for="treeGrowth">Tree Growth</label>
-                                <input type="number" class="amount-input" id="treeGrowthAmount" placeholder="$" min="0" step="0.01">
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="na" name="na">
-                                <label for="na">N/A</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="attachDataCard" name="attachDataCard">
-                                <label for="attachDataCard">✅ Property Data Card (required)</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="attachTaxMap" name="attachTaxMap">
-                                <label for="attachTaxMap">✅ Tax Map (required)</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Section 2: Code Enforcement Office -->
-                <div class="section">
-                    <div class="section-title">
-                        <span class="section-icon">2</span>
-                        Code Enforcement Office
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="dateVisited">Date Visited</label>
-                        <input type="date" id="dateVisited" name="dateVisited">
-                    </div>
-                    
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label for="currentZone">Current Zoning</label>
-                            <input type="text" id="currentZone" name="currentZone">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="overlay">Zoning Overlay?</label>
-                            <input type="text" id="overlay" name="overlay">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Flood Zone?</label>
-                        <div class="radio-group">
-                            <div class="radio-item">
-                                <input type="radio" id="floodYes" name="floodZone" value="Yes">
-                                <label for="floodYes">Yes</label>
-                            </div>
-                            <div class="radio-item">
-                                <input type="radio" id="floodNo" name="floodZone" value="No">
-                                <label for="floodNo">No</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="zoningConform">Does current use appear to conform to zoning restrictions?</label>
-                        <input type="text" id="zoningConform" name="zoningConform">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="dwellingUnits">Number of legal dwelling units permitted per ordinance?</label>
-                        <input type="text" id="dwellingUnits" name="dwellingUnits">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Septic system located in a shoreland zone?</label>
-                        <div class="checkbox-group">
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="septicYes" name="septicYes">
-                                <label for="septicYes">Yes</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="septicNo" name="septicNo">
-                                <label for="septicNo">No</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="septicNA" name="septicNA">
-                                <label for="septicNA">N/A</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="permitsIssued">Record dates & descriptions of permits issued or code enforcement issues (DO NOT LEAVE BLANK)</label>
-                        <textarea id="permitsIssued" name="permitsIssued" placeholder="Enter details here..."></textarea>
-                    </div>
-                </div>
-                
-                <!-- Section 3: Submit Documents -->
-                <div class="section">
-                    <div class="section-title">
-                        <span class="section-icon">3</span>
-                        Submit the Following Documents
-                    </div>
-                    
-                    <div class="checkbox-group" style="flex-direction: column; gap: 12px;">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="doc1" name="doc1">
-                            <label for="doc1">Pertinent code enforcement file documents</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="doc2" name="doc2">
-                            <label for="doc2">Zone Overlays</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="doc3" name="doc3">
-                            <label for="doc3">Recorded survey</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="doc4" name="doc4">
-                            <label for="doc4">Recorded easements, restrictions, covenants</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="doc5" name="doc5">
-                            <label for="doc5">Association declarations, bylaws, rules/regs</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="doc6" name="doc6">
-                            <label for="doc6">Association financial statements</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="doc7" name="doc7">
-                            <label for="doc7">Condominium resale certificate</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="doc8" name="doc8">
-                            <label for="doc8">Septic Design (HHE 200)</label>
-                        </div>
-                    </div>
-                    
-                    <!-- File Upload Section -->
-                    <div class="file-upload-section">
-                        <div class="file-upload-header">
-                            📎 Attach Files to PDF
-                        </div>
-                        <div class="file-upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
-                            <div class="upload-icon">📁</div>
-                            <p><strong>Click to upload</strong> or drag and drop files here</p>
-                            <p style="font-size: 13px; color: #6b7280; margin-top: 8px;">
-                                Supports: PDF, Images (JPG, PNG), Documents (DOCX, XLSX)
-                            </p>
-                        </div>
-                        <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.docx,.xlsx,.doc,.xls">
-                        <div class="file-list" id="fileList"></div>
-                    </div>
-                </div>
-                
-                <!-- Section 4: Completed By -->
-                <div class="section">
-                    <div class="section-title">
-                        <span class="section-icon">4</span>
-                        Completed By
-                    </div>
-                    <div class="form-group">
-                        <label for="completedBy">Your Name</label>
-                        <input type="text" id="completedBy" name="completedBy">
-                    </div>
-                </div>
-            </form>
-        </div>
-        
-        <div class="button-container">
-            <button type="submit" class="primary-btn btn-generate" onclick="fillPDF(event)">
-                🚀 Generate PDF
-            </button>
-        </div>
-        
-        <div id="status" class="status"></div>
-    </div>
+    <div id="root"></div>
     
-    <script>
-        const pdfUrl = 'KW_Maine_Public_Records_Checklist.pdf';
-        let attachedFiles = [];
-        
-        // Auto-check checkboxes when amounts are entered
-        function setupAutoCheckbox(amountInputId, checkboxId) {
-            const amountInput = document.getElementById(amountInputId);
-            const checkbox = document.getElementById(checkboxId);
-            
-            amountInput.addEventListener('input', function() {
-                if (this.value && parseFloat(this.value) > 0) {
-                    checkbox.checked = true;
-                } else {
-                    checkbox.checked = false;
-                }
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Icons
+        const Save = ({ size = 20 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+        );
+
+        const Upload = ({ size = 20 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+        );
+
+        const FileText = ({ size = 20 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+        );
+
+        const Paperclip = ({ size = 20 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+            </svg>
+        );
+
+        const Trash = ({ size = 20 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+        );
+
+        const Home = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+        );
+
+        function PocketPRC() {
+            const [formData, setFormData] = useState({
+                propertyAddress: '',
+                homesteadExemption: false,
+                homesteadAmount: '',
+                veteransExemption: false,
+                veteransAmount: '',
+                treeGrowthExemption: false,
+                treeGrowthAmount: '',
+                noExemptions: false,
+                propertyDataCard: false,
+                taxMap: false,
+                dateVisited: '',
+                currentZoning: '',
+                floodZone: '',
+                zoningOverlay: '',
+                conformsToZoning: '',
+                dwellingUnits: '',
+                septicInShoreland: '',
+                permitsDescription: '',
+                codeEnforcementDocs: false,
+                zoneOverlays: false,
+                recordedSurvey: false,
+                easements: false,
+                associationDocs: false,
+                associationFinancials: false,
+                condoCertificate: false,
+                septicDesign: false,
+                completedBy: '',
+                attachments: []
             });
-        }
-        
-        // Set up auto-checkbox for all tax exemptions
-        setupAutoCheckbox('homesteadAmount', 'homestead');
-        setupAutoCheckbox('veteransAmount', 'veterans');
-        setupAutoCheckbox('treeGrowthAmount', 'treeGrowth');
-        
-        // File upload handling
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const fileList = document.getElementById('fileList');
-        
-        // Prevent default drag behaviors
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-            document.body.addEventListener(eventName, preventDefaults, false);
-        });
-        
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        
-        // Highlight drop zone when dragging over it
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
-        });
-        
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
-        });
-        
-        // Handle dropped files
-        dropZone.addEventListener('drop', handleDrop, false);
-        fileInput.addEventListener('change', handleFileSelect, false);
-        
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            handleFiles(files);
-        }
-        
-        function handleFileSelect(e) {
-            const files = e.target.files;
-            handleFiles(files);
-        }
-        
-        function handleFiles(files) {
-            [...files].forEach(file => {
-                attachedFiles.push(file);
-                addFileToList(file);
-            });
-        }
-        
-        function addFileToList(file) {
-            const fileItem = document.createElement('div');
-            fileItem.className = 'file-item';
-            
-            const fileExt = file.name.split('.').pop().toUpperCase();
-            
-            fileItem.innerHTML = `
-                <div class="file-info">
-                    <div class="file-icon">${fileExt}</div>
-                    <div>
-                        <div style="font-weight: 600; color: #1f2937;">${file.name}</div>
-                        <div style="font-size: 12px; color: #6b7280;">${(file.size / 1024).toFixed(2)} KB</div>
-                    </div>
-                </div>
-                <button type="button" class="remove-file" onclick="removeFile('${file.name}')">Remove</button>
-            `;
-            
-            fileList.appendChild(fileItem);
-        }
-        
-        function removeFile(fileName) {
-            attachedFiles = attachedFiles.filter(f => f.name !== fileName);
-            renderFileList();
-        }
-        
-        function renderFileList() {
-            fileList.innerHTML = '';
-            attachedFiles.forEach(file => addFileToList(file));
-        }
-        
-        function resetForm() {
-            if (confirm('Are you sure you want to clear the entire form?')) {
-                document.getElementById('prcForm').reset();
-                attachedFiles = [];
-                renderFileList();
-                showStatus('Form cleared!', 'success');
-                setTimeout(() => hideStatus(), 2000);
-            }
-        }
-        
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = `status ${type}`;
-            status.style.display = 'block';
-        }
-        
-        function hideStatus() {
-            const status = document.getElementById('status');
-            status.style.display = 'none';
-        }
-        
-        // Save progress as JSON
-        function saveProgress() {
-            const formData = {
-                propertyAddress: document.getElementById('propertyAddress').value,
-                homestead: document.getElementById('homestead').checked,
-                homesteadAmount: document.getElementById('homesteadAmount').value,
-                veterans: document.getElementById('veterans').checked,
-                veteransAmount: document.getElementById('veteransAmount').value,
-                treeGrowth: document.getElementById('treeGrowth').checked,
-                treeGrowthAmount: document.getElementById('treeGrowthAmount').value,
-                na: document.getElementById('na').checked,
-                attachDataCard: document.getElementById('attachDataCard').checked,
-                attachTaxMap: document.getElementById('attachTaxMap').checked,
-                dateVisited: document.getElementById('dateVisited').value,
-                currentZone: document.getElementById('currentZone').value,
-                overlay: document.getElementById('overlay').value,
-                floodZone: document.querySelector('input[name="floodZone"]:checked')?.value || '',
-                zoningConform: document.getElementById('zoningConform').value,
-                dwellingUnits: document.getElementById('dwellingUnits').value,
-                septicYes: document.getElementById('septicYes').checked,
-                septicNo: document.getElementById('septicNo').checked,
-                septicNA: document.getElementById('septicNA').checked,
-                permitsIssued: document.getElementById('permitsIssued').value,
-                doc1: document.getElementById('doc1').checked,
-                doc2: document.getElementById('doc2').checked,
-                doc3: document.getElementById('doc3').checked,
-                doc4: document.getElementById('doc4').checked,
-                doc5: document.getElementById('doc5').checked,
-                doc6: document.getElementById('doc6').checked,
-                doc7: document.getElementById('doc7').checked,
-                doc8: document.getElementById('doc8').checked,
-                completedBy: document.getElementById('completedBy').value,
-                savedAt: new Date().toISOString()
+
+            const [status, setStatus] = useState({ show: false, message: '', type: '' });
+
+            const showStatus = (message, type) => {
+                setStatus({ show: true, message, type });
+                setTimeout(() => setStatus({ show: false, message: '', type: '' }), 4000);
             };
-            
-            const blob = new Blob([JSON.stringify(formData, null, 2)], { type: 'application/json' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            
-            const propertyAddr = document.getElementById('propertyAddress').value || 'Property';
-            const filename = `PRC_Progress_${propertyAddr.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.json`;
-            link.download = filename;
-            
-            link.click();
-            showStatus('✅ Progress saved successfully!', 'success');
-            setTimeout(() => hideStatus(), 3000);
-        }
-        
-        // Load progress from JSON
-        function loadProgress(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
+
+            const handleChange = (field, value) => {
+                setFormData(prev => ({ ...prev, [field]: value }));
+            };
+
+            // Auto-check when typing amounts
+            const handleAmountChange = (field, amountField, value) => {
+                setFormData(prev => ({
+                    ...prev,
+                    [amountField]: value,
+                    [field]: value && parseFloat(value) > 0
+                }));
+            };
+
+            const handleSave = () => {
+                const dataStr = JSON.stringify(formData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                
+                let filename = formData.propertyAddress 
+                    ? formData.propertyAddress.replace(/[^a-z0-9]/gi, '_').toLowerCase() 
+                    : 'prc_progress';
+                filename = `${filename}_${new Date().toISOString().split('T')[0]}.json`;
+                
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                showStatus('✅ Progress saved!', 'success');
+            };
+
+            const handleLoad = (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            if (!data.attachments) data.attachments = [];
+                            setFormData(data);
+                            showStatus('✅ Progress loaded!', 'success');
+                        } catch (error) {
+                            showStatus('❌ Error loading file', 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+                event.target.value = '';
+            };
+
+            const handleFileUpload = (event) => {
+                const files = Array.from(event.target.files);
+                files.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        setFormData(prev => ({
+                            ...prev,
+                            attachments: [...prev.attachments, {
+                                name: file.name,
+                                data: e.target.result,
+                                type: file.type,
+                                size: file.size
+                            }]
+                        }));
+                    };
+                    reader.readAsDataURL(file);
+                });
+                showStatus(`📎 Added ${files.length} file(s)`, 'success');
+            };
+
+            const removeAttachment = (index) => {
+                setFormData(prev => ({
+                    ...prev,
+                    attachments: prev.attachments.filter((_, i) => i !== index)
+                }));
+            };
+
+            const generatePDF = async () => {
                 try {
-                    const formData = JSON.parse(e.target.result);
+                    showStatus('🔄 Generating PDF...', 'success');
+
+                    const response = await fetch('KW_Maine_Public_Records_Checklist.pdf');
+                    const pdfBytes = await response.arrayBuffer();
                     
-                    // Load all form values
-                    document.getElementById('propertyAddress').value = formData.propertyAddress || '';
-                    document.getElementById('homestead').checked = formData.homestead || false;
-                    document.getElementById('homesteadAmount').value = formData.homesteadAmount || '';
-                    document.getElementById('veterans').checked = formData.veterans || false;
-                    document.getElementById('veteransAmount').value = formData.veteransAmount || '';
-                    document.getElementById('treeGrowth').checked = formData.treeGrowth || false;
-                    document.getElementById('treeGrowthAmount').value = formData.treeGrowthAmount || '';
-                    document.getElementById('na').checked = formData.na || false;
-                    document.getElementById('attachDataCard').checked = formData.attachDataCard || false;
-                    document.getElementById('attachTaxMap').checked = formData.attachTaxMap || false;
-                    document.getElementById('dateVisited').value = formData.dateVisited || '';
-                    document.getElementById('currentZone').value = formData.currentZone || '';
-                    document.getElementById('overlay').value = formData.overlay || '';
+                    const { PDFDocument } = PDFLib;
+                    const pdfDoc = await PDFDocument.load(pdfBytes);
+                    const form = pdfDoc.getForm();
+
+                    // Helper functions
+                    const setValue = (fieldName, value) => {
+                        try {
+                            const field = form.getTextField(fieldName);
+                            if (value) field.setText(String(value));
+                        } catch (e) { console.warn(`Field not found: ${fieldName}`); }
+                    };
+
+                    const setCheckbox = (fieldName, isChecked) => {
+                        try {
+                            const field = form.getCheckBox(fieldName);
+                            isChecked ? field.check() : field.uncheck();
+                        } catch (e) { console.warn(`Checkbox not found: ${fieldName}`); }
+                    };
+
+                    // Fill form fields
+                    setValue('Property Address', formData.propertyAddress);
+                    
+                    setCheckbox('Homestead', formData.homesteadExemption);
+                    setCheckbox('Veterans', formData.veteransExemption);
+                    setCheckbox('Tree Growth', formData.treeGrowthExemption);
+                    setCheckbox('NA', formData.noExemptions);
+                    
+                    setValue('Homestead $', formData.homesteadAmount);
+                    setValue('Veterans $', formData.veteransAmount);
+                    setValue('Tree Growth $', formData.treeGrowthAmount);
+                    
+                    setCheckbox('undefined', formData.propertyDataCard);
+                    setCheckbox('undefined_2', formData.taxMap);
+                    
+                    // Date formatting
+                    const dateValue = formData.dateVisited;
+                    const formattedDate = dateValue ? new Date(dateValue + 'T00:00:00').toLocaleDateString('en-US') : '';
+                    setValue('DATE VISITED', formattedDate);
+                    
+                    setValue('Current Zone', formData.currentZoning);
+                    setValue('Overlay?', formData.zoningOverlay);
                     
                     if (formData.floodZone) {
-                        const floodRadio = document.querySelector(`input[name="floodZone"][value="${formData.floodZone}"]`);
-                        if (floodRadio) floodRadio.checked = true;
+                        try {
+                            form.getRadioGroup('Flood Zone').select(formData.floodZone);
+                        } catch (e) { console.warn('Flood Zone error'); }
                     }
                     
-                    document.getElementById('zoningConform').value = formData.zoningConform || '';
-                    document.getElementById('dwellingUnits').value = formData.dwellingUnits || '';
-                    document.getElementById('septicYes').checked = formData.septicYes || false;
-                    document.getElementById('septicNo').checked = formData.septicNo || false;
-                    document.getElementById('septicNA').checked = formData.septicNA || false;
-                    document.getElementById('permitsIssued').value = formData.permitsIssued || '';
-                    document.getElementById('doc1').checked = formData.doc1 || false;
-                    document.getElementById('doc2').checked = formData.doc2 || false;
-                    document.getElementById('doc3').checked = formData.doc3 || false;
-                    document.getElementById('doc4').checked = formData.doc4 || false;
-                    document.getElementById('doc5').checked = formData.doc5 || false;
-                    document.getElementById('doc6').checked = formData.doc6 || false;
-                    document.getElementById('doc7').checked = formData.doc7 || false;
-                    document.getElementById('doc8').checked = formData.doc8 || false;
-                    document.getElementById('completedBy').value = formData.completedBy || '';
+                    setValue('2 Does current use appear to conform to zoning restrictions', formData.conformsToZoning);
+                    setValue('3 Number of legal dwelling units permitted per ordinance', formData.dwellingUnits);
                     
-                    showStatus('✅ Progress loaded successfully!', 'success');
-                    setTimeout(() => hideStatus(), 3000);
+                    setCheckbox('undefined_3', formData.septicInShoreland === 'Yes');
+                    setCheckbox('undefined_4', formData.septicInShoreland === 'No');
+                    setCheckbox('undefined_5', formData.septicInShoreland === 'N/A');
+                    
+                    setValue('5 Record dates  descriptions of permits issued or code enforcement issues if any DO NOT LEAVE BLANK', 
+                             formData.permitsDescription);
+                    
+                    setCheckbox('toggle_12', formData.codeEnforcementDocs);
+                    setCheckbox('undefined_6', formData.zoneOverlays);
+                    setCheckbox('undefined_7', formData.recordedSurvey);
+                    setCheckbox('undefined_8', formData.easements);
+                    setCheckbox('undefined_9', formData.associationDocs);
+                    setCheckbox('undefined_10', formData.associationFinancials);
+                    setCheckbox('undefined_11', formData.condoCertificate);
+                    setCheckbox('undefined_12', formData.septicDesign);
+                    
+                    setValue('4 COMPLETED BY', formData.completedBy);
+
+                    // Attach files
+                    for (const attachment of formData.attachments) {
+                        try {
+                            const base64Data = attachment.data.split(',')[1];
+                            const fileBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+                            await pdfDoc.attach(fileBytes, attachment.name, {
+                                mimeType: attachment.type || 'application/octet-stream',
+                                description: `Attached: ${attachment.name}`
+                            });
+                        } catch (e) {
+                            console.error('Error attaching file:', e);
+                        }
+                    }
+
+                    // Save and download
+                    const pdfBytesOutput = await pdfDoc.save();
+                    const blob = new Blob([pdfBytesOutput], { type: 'application/pdf' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    
+                    const propertyAddr = formData.propertyAddress || 'Property';
+                    const filename = `PRC_${propertyAddr.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+                    link.download = filename;
+                    link.click();
+                    
+                    const attachText = formData.attachments.length > 0 ? ` with ${formData.attachments.length} attachment(s)` : '';
+                    showStatus(`✅ PDF generated${attachText}!`, 'success');
                 } catch (error) {
-                    showStatus('❌ Error loading file: Invalid JSON format', 'error');
-                    console.error('Error loading JSON:', error);
+                    console.error('Error:', error);
+                    showStatus('❌ Error generating PDF', 'error');
                 }
             };
-            reader.readAsText(file);
+
+            return (
+                <div className="min-h-screen bg-gray-50">
+                    {/* Header */}
+                    <div className="bg-red-600 text-white p-4 sticky top-0 z-10 shadow-lg">
+                        <div className="max-w-2xl mx-auto flex justify-between items-center">
+                            <h1 className="text-xl font-bold flex items-center gap-2">
+                                <Home size={24} />
+                                Pocket PRC
+                            </h1>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleSave}
+                                    className="bg-white text-red-600 px-3 py-2 rounded font-semibold flex items-center gap-2 hover:bg-gray-100"
+                                >
+                                    <Save />
+                                    <span className="hidden sm:inline">Save</span>
+                                </button>
+                                <label className="bg-white text-red-600 px-3 py-2 rounded font-semibold flex items-center gap-2 cursor-pointer hover:bg-gray-100">
+                                    <Upload />
+                                    <span className="hidden sm:inline">Load</span>
+                                    <input type="file" accept=".json" onChange={handleLoad} className="hidden" />
+                                </label>
+                                <button
+                                    onClick={generatePDF}
+                                    className="bg-white text-red-600 px-3 py-2 rounded font-semibold flex items-center gap-2 hover:bg-gray-100"
+                                >
+                                    <FileText />
+                                    <span className="hidden sm:inline">Generate PDF</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Status */}
+                    {status.show && (
+                        <div className={`max-w-2xl mx-auto mt-4 p-4 rounded-lg ${status.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {status.message}
+                        </div>
+                    )}
+
+                    {/* Form */}
+                    <div className="max-w-2xl mx-auto p-4 pb-20">
+                        {/* Property Address */}
+                        <div className="bg-white rounded-lg shadow p-4 mb-4">
+                            <label className="block font-semibold mb-2">Property Address *</label>
+                            <input
+                                type="text"
+                                value={formData.propertyAddress}
+                                onChange={(e) => handleChange('propertyAddress', e.target.value)}
+                                className="w-full p-2 border rounded"
+                                placeholder="Enter property address"
+                            />
+                        </div>
+
+                        {/* Section 1: Assessor's Office */}
+                        <div className="bg-white rounded-lg shadow p-4 mb-4">
+                            <h2 className="text-lg font-bold mb-4 text-red-600">1. ASSESSOR'S OFFICE</h2>
+                            
+                            <div className="mb-4">
+                                <p className="font-semibold mb-2">Tax Exemptions</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.homesteadExemption}
+                                            onChange={(e) => handleChange('homesteadExemption', e.target.checked)}
+                                        />
+                                        Homestead $
+                                        <input
+                                            type="number"
+                                            value={formData.homesteadAmount}
+                                            onChange={(e) => handleAmountChange('homesteadExemption', 'homesteadAmount', e.target.value)}
+                                            className="w-24 p-1 border rounded"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.veteransExemption}
+                                            onChange={(e) => handleChange('veteransExemption', e.target.checked)}
+                                        />
+                                        Veterans $
+                                        <input
+                                            type="number"
+                                            value={formData.veteransAmount}
+                                            onChange={(e) => handleAmountChange('veteransExemption', 'veteransAmount', e.target.value)}
+                                            className="w-24 p-1 border rounded"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.treeGrowthExemption}
+                                            onChange={(e) => handleChange('treeGrowthExemption', e.target.checked)}
+                                        />
+                                        Tree Growth $
+                                        <input
+                                            type="number"
+                                            value={formData.treeGrowthAmount}
+                                            onChange={(e) => handleAmountChange('treeGrowthExemption', 'treeGrowthAmount', e.target.value)}
+                                            className="w-24 p-1 border rounded"
+                                            step="0.01"
+                                        />
+                                    </label>
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.noExemptions}
+                                            onChange={(e) => handleChange('noExemptions', e.target.checked)}
+                                        />
+                                        N/A
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.propertyDataCard}
+                                        onChange={(e) => handleChange('propertyDataCard', e.target.checked)}
+                                    />
+                                    ATTACH Property Data Card - required
+                                </label>
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.taxMap}
+                                        onChange={(e) => handleChange('taxMap', e.target.checked)}
+                                    />
+                                    ATTACH Tax Map - required
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Section 2: Code Enforcement */}
+                        <div className="bg-white rounded-lg shadow p-4 mb-4">
+                            <h2 className="text-lg font-bold mb-4 text-red-600">2. CODE ENFORCEMENT OFFICE</h2>
+                            
+                            <div className="mb-4">
+                                <label className="block font-semibold mb-2">Date Visited</label>
+                                <input
+                                    type="date"
+                                    value={formData.dateVisited}
+                                    onChange={(e) => handleChange('dateVisited', e.target.value)}
+                                    className="w-full p-2 border rounded"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="block font-semibold mb-2">Current Zoning</label>
+                                    <input
+                                        type="text"
+                                        value={formData.currentZoning}
+                                        onChange={(e) => handleChange('currentZoning', e.target.value)}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-semibold mb-2">Zoning Overlay?</label>
+                                    <input
+                                        type="text"
+                                        value={formData.zoningOverlay}
+                                        onChange={(e) => handleChange('zoningOverlay', e.target.value)}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="mb-4">
+                                <p className="font-semibold mb-2">Flood Zone?</p>
+                                <div className="flex gap-4">
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="radio"
+                                            checked={formData.floodZone === 'Yes'}
+                                            onChange={() => handleChange('floodZone', 'Yes')}
+                                        />
+                                        Yes
+                                    </label>
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="radio"
+                                            checked={formData.floodZone === 'No'}
+                                            onChange={() => handleChange('floodZone', 'No')}
+                                        />
+                                        No
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block font-semibold mb-2">Does current use appear to conform to zoning restrictions?</label>
+                                <input
+                                    type="text"
+                                    value={formData.conformsToZoning}
+                                    onChange={(e) => handleChange('conformsToZoning', e.target.value)}
+                                    className="w-full p-2 border rounded"
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block font-semibold mb-2">Number of legal dwelling units permitted per ordinance?</label>
+                                <input
+                                    type="text"
+                                    value={formData.dwellingUnits}
+                                    onChange={(e) => handleChange('dwellingUnits', e.target.value)}
+                                    className="w-full p-2 border rounded"
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <p className="font-semibold mb-2">Septic system located in a shoreland zone?</p>
+                                <div className="flex gap-4">
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="radio"
+                                            checked={formData.septicInShoreland === 'Yes'}
+                                            onChange={() => handleChange('septicInShoreland', 'Yes')}
+                                        />
+                                        Yes
+                                    </label>
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="radio"
+                                            checked={formData.septicInShoreland === 'No'}
+                                            onChange={() => handleChange('septicInShoreland', 'No')}
+                                        />
+                                        No
+                                    </label>
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="radio"
+                                            checked={formData.septicInShoreland === 'N/A'}
+                                            onChange={() => handleChange('septicInShoreland', 'N/A')}
+                                        />
+                                        N/A
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block font-semibold mb-2">Record dates & descriptions of permits issued or code enforcement issues (DO NOT LEAVE BLANK)</label>
+                                <textarea
+                                    value={formData.permitsDescription}
+                                    onChange={(e) => handleChange('permitsDescription', e.target.value)}
+                                    className="w-full p-2 border rounded h-32"
+                                    placeholder="Enter details here..."
+                                />
+                            </div>
+                        </div>
+
+                        {/* Section 3: Documents */}
+                        <div className="bg-white rounded-lg shadow p-4 mb-4">
+                            <h2 className="text-lg font-bold mb-4 text-red-600">3. SUBMIT THE FOLLOWING DOCUMENTS</h2>
+                            
+                            <div className="space-y-2">
+                                <label className="flex items-center gap-2">
+                                    <input type="checkbox" checked={formData.codeEnforcementDocs} onChange={(e) => handleChange('codeEnforcementDocs', e.target.checked)} />
+                                    Pertinent code enforcement file documents
+                                </label>
+                                <label className="flex items-center gap-2">
+                                    <input type="checkbox" checked={formData.zoneOverlays} onChange={(e) => handleChange('zoneOverlays', e.target.checked)} />
+                                    Zone Overlays
+                                </label>
+                                <label className="flex items-center gap-2">
+                                    <input type="checkbox" checked={formData.recordedSurvey} onChange={(e) => handleChange('recordedSurvey', e.target.checked)} />
+                                    Recorded survey
+                                </label>
+                                <label className="flex items-center gap-2">
+                                    <input type="checkbox" checked={formData.easements} onChange={(e) => handleChange('easements', e.target.checked)} />
+                                    Recorded easements, restrictions, covenants
+                                </label>
+                                <label className="flex items-center gap-2">
+                                    <input type="checkbox" checked={formData.associationDocs} onChange={(e) => handleChange('associationDocs', e.target.checked)} />
+                                    Association declarations, bylaws, rules/regs
+                                </label>
+                                <label className="flex items-center gap-2">
+                                    <input type="checkbox" checked={formData.associationFinancials} onChange={(e) => handleChange('associationFinancials', e.target.checked)} />
+                                    Association financial statements
+                                </label>
+                                <label className="flex items-center gap-2">
+                                    <input type="checkbox" checked={formData.condoCertificate} onChange={(e) => handleChange('condoCertificate', e.target.checked)} />
+                                    Condominium resale certificate
+                                </label>
+                                <label className="flex items-center gap-2">
+                                    <input type="checkbox" checked={formData.septicDesign} onChange={(e) => handleChange('septicDesign', e.target.checked)} />
+                                    Septic Design (HHE 200)
+                                </label>
+                            </div>
+
+                            {/* File Attachments */}
+                            <div className="mt-6 border-2 border-dashed border-gray-300 rounded-lg p-6">
+                                <label className="cursor-pointer">
+                                    <div className="text-center">
+                                        <Paperclip size={48} className="mx-auto text-gray-400 mb-2" />
+                                        <p className="font-semibold mb-1">Click to attach files</p>
+                                        <p className="text-sm text-gray-600">PDF, Images, Documents</p>
+                                    </div>
+                                    <input
+                                        type="file"
+                                        multiple
+                                        accept=".pdf,.jpg,.jpeg,.png,.docx,.xlsx"
+                                        onChange={handleFileUpload}
+                                        className="hidden"
+                                    />
+                                </label>
+
+                                {formData.attachments.length > 0 && (
+                                    <div className="mt-4 space-y-2">
+                                        {formData.attachments.map((att, i) => (
+                                            <div key={i} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                                <div className="flex items-center gap-2">
+                                                    <Paperclip size={16} />
+                                                    <span className="text-sm">{att.name}</span>
+                                                    <span className="text-xs text-gray-500">({(att.size / 1024).toFixed(1)} KB)</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => removeAttachment(i)}
+                                                    className="text-red-600 hover:text-red-800"
+                                                >
+                                                    <Trash size={16} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Section 4: Completed By */}
+                        <div className="bg-white rounded-lg shadow p-4 mb-4">
+                            <h2 className="text-lg font-bold mb-4 text-red-600">4. COMPLETED BY</h2>
+                            <input
+                                type="text"
+                                value={formData.completedBy}
+                                onChange={(e) => handleChange('completedBy', e.target.value)}
+                                className="w-full p-2 border rounded"
+                                placeholder="Your name"
+                            />
+                        </div>
+                    </div>
+                </div>
+            );
         }
-        
-        async function fillPDF(event) {
-            event.preventDefault();
-            
-            try {
-                showStatus('🔄 Generating PDF with attachments...', 'success');
-                
-                // Load the PDF
-                const response = await fetch(pdfUrl);
-                const pdfBytes = await response.arrayBuffer();
-                
-                // Load PDF with pdf-lib
-                const { PDFDocument } = PDFLib;
-                const pdfDoc = await PDFDocument.load(pdfBytes);
-                
-                // Get the form
-                const form = pdfDoc.getForm();
-                
-                // Fill all the fields
-                const setValue = (fieldName, value) => {
-                    try {
-                        const field = form.getTextField(fieldName);
-                        if (value) field.setText(String(value));
-                    } catch (e) {
-                        console.warn(`Could not set text field: ${fieldName}`, e);
-                    }
-                };
-                
-                const setCheckbox = (fieldName, isChecked) => {
-                    try {
-                        const field = form.getCheckBox(fieldName);
-                        if (isChecked) {
-                            field.check();
-                        } else {
-                            field.uncheck();
-                        }
-                    } catch (e) {
-                        console.warn(`Could not set checkbox: ${fieldName}`, e);
-                    }
-                };
-                
-                // Property Address
-                setValue('Property Address', document.getElementById('propertyAddress').value);
-                
-                // Tax Exemptions
-                setCheckbox('Homestead', document.getElementById('homestead').checked);
-                setCheckbox('Veterans', document.getElementById('veterans').checked);
-                setCheckbox('Tree Growth', document.getElementById('treeGrowth').checked);
-                setCheckbox('NA', document.getElementById('na').checked);
-                
-                setValue('Homestead $', document.getElementById('homesteadAmount').value);
-                setValue('Veterans $', document.getElementById('veteransAmount').value);
-                setValue('Tree Growth $', document.getElementById('treeGrowthAmount').value);
-                
-                // Attachments
-                setCheckbox('undefined', document.getElementById('attachDataCard').checked);
-                setCheckbox('undefined_2', document.getElementById('attachTaxMap').checked);
-                
-                // Code Enforcement - Format date from YYYY-MM-DD to MM/DD/YYYY
-                const dateValue = document.getElementById('dateVisited').value;
-                const formattedDate = dateValue ? new Date(dateValue + 'T00:00:00').toLocaleDateString('en-US') : '';
-                setValue('DATE VISITED', formattedDate);
-                setValue('Current Zone', document.getElementById('currentZone').value);
-                setValue('Overlay?', document.getElementById('overlay').value);
-                
-                // Flood Zone Radio
-                const floodZoneValue = document.querySelector('input[name="floodZone"]:checked')?.value;
-                if (floodZoneValue) {
-                    try {
-                        const floodField = form.getRadioGroup('Flood Zone');
-                        floodField.select(floodZoneValue);
-                    } catch (e) {
-                        console.error('Could not set Flood Zone:', e);
-                    }
-                }
-                
-                setValue('2 Does current use appear to conform to zoning restrictions', 
-                         document.getElementById('zoningConform').value);
-                setValue('3 Number of legal dwelling units permitted per ordinance', 
-                         document.getElementById('dwellingUnits').value);
-                
-                // Septic checkboxes
-                setCheckbox('undefined_3', document.getElementById('septicYes').checked);
-                setCheckbox('undefined_4', document.getElementById('septicNo').checked);
-                setCheckbox('undefined_5', document.getElementById('septicNA').checked);
-                
-                setValue('5 Record dates  descriptions of permits issued or code enforcement issues if any DO NOT LEAVE BLANK', 
-                         document.getElementById('permitsIssued').value);
-                
-                // Document checkboxes
-                setCheckbox('toggle_12', document.getElementById('doc1').checked);
-                setCheckbox('undefined_6', document.getElementById('doc2').checked);
-                setCheckbox('undefined_7', document.getElementById('doc3').checked);
-                setCheckbox('undefined_8', document.getElementById('doc4').checked);
-                setCheckbox('undefined_9', document.getElementById('doc5').checked);
-                setCheckbox('undefined_10', document.getElementById('doc6').checked);
-                setCheckbox('undefined_11', document.getElementById('doc7').checked);
-                setCheckbox('undefined_12', document.getElementById('doc8').checked);
-                
-                // Completed By
-                setValue('4 COMPLETED BY', document.getElementById('completedBy').value);
-                
-                // Attach files to PDF
-                for (const file of attachedFiles) {
-                    const fileBytes = await file.arrayBuffer();
-                    await pdfDoc.attach(fileBytes, file.name, {
-                        mimeType: file.type || 'application/octet-stream',
-                        description: `Attached: ${file.name}`,
-                        creationDate: new Date(),
-                        modificationDate: new Date()
-                    });
-                }
-                
-                // Save the PDF
-                const pdfBytesOutput = await pdfDoc.save();
-                
-                // Download the PDF
-                const blob = new Blob([pdfBytesOutput], { type: 'application/pdf' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                
-                const propertyAddr = document.getElementById('propertyAddress').value || 'Property';
-                const filename = `PRC_${propertyAddr.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-                link.download = filename;
-                
-                link.click();
-                
-                const attachmentText = attachedFiles.length > 0 ? ` with ${attachedFiles.length} attachment(s)` : '';
-                showStatus(`✅ PDF generated successfully${attachmentText}! Check your downloads.`, 'success');
-                setTimeout(() => hideStatus(), 5000);
-                
-            } catch (error) {
-                console.error('Error generating PDF:', error);
-                showStatus('❌ Error generating PDF: ' + error.message, 'error');
-            }
-        }
+
+        ReactDOM.render(<PocketPRC />, document.getElementById('root'));
     </script>
 </body>
 </html>
