@@ -554,21 +554,16 @@
                 setValue('Current Zone', document.getElementById('currentZone').value);
                 setValue('Overlay?', document.getElementById('overlay').value);
                 
-                // Flood Zone Radio - Enhanced handling
+                // Flood Zone Radio - Fixed!
                 const floodZoneValue = document.querySelector('input[name="floodZone"]:checked')?.value;
                 console.log('Flood Zone selected value:', floodZoneValue);
                 
                 if (floodZoneValue) {
                     try {
                         const floodField = form.getRadioGroup('Flood Zone');
-                        const options = floodField.getOptions();
-                        console.log('Available Flood Zone options:', options);
-                        
-                        const targetValue = `/${floodZoneValue}`;
-                        console.log('Attempting to select:', targetValue);
-                        
-                        floodField.select(targetValue);
-                        console.log('Successfully set Flood Zone to:', targetValue);
+                        // Don't add the slash - just use 'Yes' or 'No' directly
+                        floodField.select(floodZoneValue);
+                        console.log('Successfully set Flood Zone to:', floodZoneValue);
                     } catch (e) {
                         console.error('Could not set Flood Zone:', e);
                         console.error('Error details:', e.message);
