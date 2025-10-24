@@ -203,6 +203,28 @@
                 }));
             };
 
+            // Helper function to correct image orientation
+            const correctImageOrientation = async (dataUrl) => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Set canvas size to match image
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        
+                        // Draw image (browsers handle EXIF orientation automatically)
+                        ctx.drawImage(img, 0, 0);
+                        
+                        // Convert back to data URL
+                        resolve(canvas.toDataURL('image/jpeg', 0.92));
+                    };
+                    img.src = dataUrl;
+                });
+            };
+
             const generatePDF = async () => {
                 try {
                     showStatus('📄 Generating PDF...', 'success');
@@ -282,24 +304,15 @@
                     // Add attachments as pages
                     for (const attachment of formData.attachments) {
                         try {
-                            const base64Data = attachment.data.split(',')[1];
-                            const fileBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-                            
                             // Check if it's an image
                             if (attachment.type.startsWith('image/')) {
-                                let image;
-                                if (attachment.type === 'image/png') {
-                                    image = await pdfDoc.embedPng(fileBytes);
-                                } else if (attachment.type === 'image/jpeg' || attachment.type === 'image/jpg') {
-                                    image = await pdfDoc.embedJpg(fileBytes);
-                                } else {
-                                    // Try as PNG first, then JPG
-                                    try {
-                                        image = await pdfDoc.embedPng(fileBytes);
-                                    } catch {
-                                        image = await pdfDoc.embedJpg(fileBytes);
-                                    }
-                                }
+                                // Correct image orientation first
+                                const correctedDataUrl = await correctImageOrientation(attachment.data);
+                                const base64Data = correctedDataUrl.split(',')[1];
+                                const fileBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+                                
+                                // Embed the corrected image
+                                const image = await pdfDoc.embedJpg(fileBytes);
                                 
                                 // Add a new page with the image
                                 const page = pdfDoc.addPage();
@@ -331,17 +344,11 @@
                                     width: drawWidth,
                                     height: drawHeight
                                 });
-                                
-                                // Add filename at bottom
-                                page.drawText(attachment.name, {
-                                    x: 20,
-                                    y: 20,
-                                    size: 10,
-                                    color: rgb(0.4, 0.4, 0.4)
-                                });
                             }
                             // Handle PDF attachments
                             else if (attachment.type === 'application/pdf') {
+                                const base64Data = attachment.data.split(',')[1];
+                                const fileBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
                                 const attachedPdf = await PDFDocument.load(fileBytes);
                                 const copiedPages = await pdfDoc.copyPages(attachedPdf, attachedPdf.getPageIndices());
                                 copiedPages.forEach(page => pdfDoc.addPage(page));
